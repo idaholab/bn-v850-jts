@@ -1,0 +1,19 @@
+{
+  "pluginmetadataversion": 2,
+  "name": "V850 Jump Table Resolver",
+  "type": ["core", "ui"],
+  "api": ["python3"],
+  "description": "Identifies and resolves V850 jump tables",
+  "longdescription": "Identifies and resolves V850 jump tables.",
+  "platforms": [
+    "Linux",
+    "Windows"
+  ],
+  "installinstructions": {
+    "Linux": "Clone into the Binary Ninja plugins directory",
+    "Windows": "Clone into the Binary Ninja plugins directory"
+  },
+  "version": "25.11.0",
+  "author": "Garrett Larsen <garrett.larsen@inl.gov>",
+  "minimumbinaryninjaversion": 4958
+}
