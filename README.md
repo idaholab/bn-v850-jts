@@ -29,11 +29,7 @@ Contributions are welcome! Please:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Limitations
-TODO
-
 ## Resources
-TODO: any references that talk about the jump table format
 - [Binary Ninja API Documentation](https://api.binary.ninja/)
 - [V850E1 Architecture Instruction Set Reference](https://www.renesas.com/en/document/mah/v850-familytm-architecture)
 
