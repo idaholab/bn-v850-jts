@@ -109,8 +109,12 @@ def eliminate_invalid_switches(bv: bn.BinaryView):
     bn.log_debug("{}".format(collisions))
     for addr in collisions:
         highest = max(collisions[addr])
+        fn = bv.get_function_at(highest)
+        if fn is None:
+            bn.log_info("Function at 0x{:x} already gone, skipping".format(highest))
+            continue
         bn.log_info("Eliminating function at 0x{:x}".format(highest))
-        bv.remove_function(bv.get_function_at(highest))
+        bv.remove_function(fn)
     bv.commit_undo_actions()
     return switches
 
