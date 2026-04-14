@@ -52,11 +52,18 @@ def find_table_size(bv: bn.BinaryView, block: bn.BasicBlock) -> int:
 
 
 def fix_jump_table(bv: bn.BinaryView, address: int, update=True):
-    if len(bv.get_basic_blocks_at(address)) == 0:
+    blocks = bv.get_basic_blocks_at(address)
+    if len(blocks) == 0:
         return False
 
     bv.begin_undo_actions()
-    block: bn.BasicBlock = bv.get_basic_blocks_at(address)[0]
+    # Re-fetch under the undo boundary — analysis may have mutated the
+    # block list between the guard above and here. Guard again.
+    blocks = bv.get_basic_blocks_at(address)
+    if len(blocks) == 0:
+        bn.log_info("0x{:x}: blocks vanished before fix; skipping".format(address))
+        return False
+    block: bn.BasicBlock = blocks[0]
     tokens, length = block.function.arch.get_instruction_text(
         bv.read(address, 4), address
     )
