@@ -19,7 +19,12 @@ def find_table_size(bv: bn.BinaryView, block: bn.BasicBlock) -> int:
             bv.read(addr, 4), addr
         )
         if str(tokens[0]).rstrip() == "cmp":
-            size = int(str(tokens[2]), 16) + 1
+            try:
+                size = int(str(tokens[2]), 16) + 1
+            except ValueError:
+                # cmp reg,reg form — operand is a register name, not an immediate.
+                # Can't derive table size from this cmp; keep scanning for another.
+                pass
         elif str(tokens[0]).rstrip() == "bh":
             info: bn.InstructionInfo = block.function.arch.get_instruction_info(
                 bv.read(addr, 4), addr
