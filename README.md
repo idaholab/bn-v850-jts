@@ -38,6 +38,12 @@ Licensed under MIT.
 
 See [LICENSE](LICENSE) file for details.
 
+## Contributors
+
+| Contributor | Contributions |
+|---|---|
+| **ghostdev** | Bug fixes: null-guard before `remove_function` in `eliminate_invalid_switches`; graceful handling of `cmp reg,reg` form in `find_table_size`; narrowed TOCTOU window in `fix_jump_table` block fetch |
+
 ## Credits
 Please see the [NOTICE](NOTICE.txt) file for details.
 

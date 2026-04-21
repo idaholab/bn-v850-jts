@@ -79,6 +79,9 @@ def fix_jump_table(bv: bn.BinaryView, address: int, update=True):
         )
         return False
     tsize = find_table_size(bv, block.immediate_dominator)
+    if tsize == 0:
+        bn.log_warn("0x{:x}: could not determine table size; skipping".format(address))
+        return False
     block.function.set_comment_at(address, "Switch table of size {}".format(tsize))
     bn.log_debug("Found switch table of size {}".format(str(tsize)))
 
