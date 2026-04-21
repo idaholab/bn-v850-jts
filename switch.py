@@ -19,7 +19,12 @@ def find_table_size(bv: bn.BinaryView, block: bn.BasicBlock) -> int:
             bv.read(addr, 4), addr
         )
         if str(tokens[0]).rstrip() == "cmp":
-            size = int(str(tokens[2]), 16) + 1
+            try:
+                size = int(str(tokens[2]), 16) + 1
+            except ValueError:
+                # cmp reg,reg form — operand is a register name, not an immediate.
+                # Can't derive table size from this cmp; keep scanning for another.
+                pass
         elif str(tokens[0]).rstrip() == "bh":
             info: bn.InstructionInfo = block.function.arch.get_instruction_info(
                 bv.read(addr, 4), addr
@@ -47,11 +52,18 @@ def find_table_size(bv: bn.BinaryView, block: bn.BasicBlock) -> int:
 
 
 def fix_jump_table(bv: bn.BinaryView, address: int, update=True):
-    if len(bv.get_basic_blocks_at(address)) == 0:
+    blocks = bv.get_basic_blocks_at(address)
+    if len(blocks) == 0:
         return False
 
     bv.begin_undo_actions()
-    block: bn.BasicBlock = bv.get_basic_blocks_at(address)[0]
+    # Re-fetch under the undo boundary — analysis may have mutated the
+    # block list between the guard above and here. Guard again.
+    blocks = bv.get_basic_blocks_at(address)
+    if len(blocks) == 0:
+        bn.log_info("0x{:x}: blocks vanished before fix; skipping".format(address))
+        return False
+    block: bn.BasicBlock = blocks[0]
     tokens, length = block.function.arch.get_instruction_text(
         bv.read(address, 4), address
     )
@@ -67,6 +79,9 @@ def fix_jump_table(bv: bn.BinaryView, address: int, update=True):
         )
         return False
     tsize = find_table_size(bv, block.immediate_dominator)
+    if tsize == 0:
+        bn.log_warn("0x{:x}: could not determine table size; skipping".format(address))
+        return False
     block.function.set_comment_at(address, "Switch table of size {}".format(tsize))
     bn.log_debug("Found switch table of size {}".format(str(tsize)))
 
@@ -109,8 +124,12 @@ def eliminate_invalid_switches(bv: bn.BinaryView):
     bn.log_debug("{}".format(collisions))
     for addr in collisions:
         highest = max(collisions[addr])
+        fn = bv.get_function_at(highest)
+        if fn is None:
+            bn.log_info("Function at 0x{:x} already gone, skipping".format(highest))
+            continue
         bn.log_info("Eliminating function at 0x{:x}".format(highest))
-        bv.remove_function(bv.get_function_at(highest))
+        bv.remove_function(fn)
     bv.commit_undo_actions()
     return switches
 
